@@ -1,0 +1,28 @@
+{
+    "users": [
+        {
+            "username": "fernando",
+            "password": "efab1q2w",
+            "name": "Fernando Sanchez",
+            "role": "admin"
+        },
+        {
+            "username": "laura",
+            "password": "1982",
+            "name": "Laura Moffa",
+            "role": "cliente"
+        },
+        {
+            "username": "serena",
+            "password": "2010",
+            "name": "Serena Sánchez Moffa",
+            "role": "cliente"
+        },
+        {
+            "username": "manuel",
+            "password": "2015",
+            "name": "Manuel Sánchez Moffa",
+            "role": "cliente"
+        }
+    ]
+}

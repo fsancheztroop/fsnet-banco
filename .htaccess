@@ -1,0 +1,8 @@
+<Files "*.php">
+Require all granted
+</Files>
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+</IfModule>

@@ -1,0 +1,8 @@
+<Files "*.php">
+Require all granted
+</Files>
+
+AuthType Basic
+AuthName "restricted area"
+AuthUserFile /var/www/html/banco/users/.htpasswd
+require valid-user
