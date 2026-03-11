@@ -1,0 +1,6 @@
+{
+  "name": "Mi template base",
+  "description": "Workspace con Gemini Code Assist ya instalado",
+  "icon": "https://www.gstatic.com/images/branding/productlogos/studio/v1/192px.svg",
+  "params": []
+}
