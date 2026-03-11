@@ -10,22 +10,26 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['rol
 // Cargar el usuario logueado
 $nombre_usuario = $_SESSION['usuario'];  // Ejemplo: 'Fernando Sánchez'
 $username = $_SESSION['username'];  // Ejemplo: 'fernando' (nombre para el archivo JSON)
+$moneda = isset($_GET['moneda']) ? $_GET['moneda'] : 'ars'; // Default ARS
 
 // Verificar si el archivo JSON del usuario existe
-$cuenta_json_path = 'cuentas/' . strtolower($username) . '.json';
+$suffix = ($moneda === 'usd') ? '_usd.json' : '.json';
+$cuenta_json_path = 'cuentas/' . strtolower($username) . $suffix;
+
 if (!file_exists($cuenta_json_path)) {
-    echo "Error: No se encontró el archivo de movimientos para el usuario.";
-    exit;
+    // Si no existe, inicializamos vacío para no romper la web
+    $movimientos = [];
+} else {
+    // Cargar los movimientos de la cuenta del usuario desde su archivo JSON
+    $movimientos = json_decode(file_get_contents($cuenta_json_path), true);
 }
 
-// Cargar los movimientos de la cuenta del usuario desde su archivo JSON
-$movimientos = json_decode(file_get_contents($cuenta_json_path), true);
-
 // Verificar si la lectura de los movimientos fue exitosa
-if ($movimientos === null) {
+if ($movimientos === null && file_exists($cuenta_json_path)) {
     echo "Error: No se pudo leer el archivo JSON de movimientos.";
     exit;
 }
+$simbolo = ($moneda === 'usd') ? 'US$' : '$';
 ?>
 
 <!DOCTYPE html>
@@ -52,13 +56,13 @@ if ($movimientos === null) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($movimientos as $movimiento): ?>
+                    <?php foreach (array_reverse($movimientos) as $movimiento): ?>
                         <tr>
                             <td><?= htmlspecialchars($movimiento['fecha']) ?></td>
                             <td><?= htmlspecialchars($movimiento['tipo']) ?></td>
                             <td><?= htmlspecialchars($movimiento['concepto']) ?></td>
-                            <td>$<?= number_format($movimiento['monto'], 2) ?></td>
-                            <td>$<?= number_format($movimiento['total_en_cuenta'], 2) ?></td>
+                            <td><?= $simbolo . number_format($movimiento['monto'], 2) ?></td>
+                            <td><?= $simbolo . number_format($movimiento['total_en_cuenta'], 2) ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
