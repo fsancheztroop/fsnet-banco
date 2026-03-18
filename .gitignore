@@ -1,4 +1,4 @@
-          .vscode/sftp.json
-          .vscode/
-          stats/
-          backups/
+.vscode/sftp.json
+.vscode/
+stats/
+backups/
