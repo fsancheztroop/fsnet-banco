@@ -4,7 +4,7 @@
 // Se recomienda ejecutar esto vía CRON diariamente.
 
 // --- 1. CONFIGURACIÓN ---
-$api_url = 'https://troopsf.com/backupshub/api/receive.php';
+$api_url = 'https://backupshub.fsnet.com.ar/api/receive.php';
 $api_token = '78a7a8190faea397b4084cfcc40a2a73fa45e6bcd845d7261742676a8f413e61';
 
 // Rutas base

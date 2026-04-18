@@ -60,7 +60,7 @@ function procesarConsecutivos($lista, &$destino) {
     $suma = array_sum(array_column($lista, 'monto'));
     $primero = $lista[0];
     $ultimo = end($lista);
-    $dias = count($lista);
+    $dias = contarDiasUnicos($lista);
     
     $fecha_inicio = (new DateTime($primero['fecha']))->format('d/m');
     $fecha_fin = (new DateTime($ultimo['fecha']))->format('d/m');
@@ -76,6 +76,16 @@ function procesarConsecutivos($lista, &$destino) {
         'concepto' => $concepto,
         'total_en_cuenta' => $ultimo['total_en_cuenta']
     ];
+}
+
+function contarDiasUnicos($lista) {
+    $fechas = [];
+
+    foreach ($lista as $movimiento) {
+        $fechas[(new DateTime($movimiento['fecha']))->format('Y-m-d')] = true;
+    }
+
+    return count($fechas);
 }
 
 $simbolo = ($moneda === 'usd') ? 'US$' : '$';
