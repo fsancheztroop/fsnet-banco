@@ -4,7 +4,7 @@
         "tipo": "Ingreso",
         "monto": 143000,
         "concepto": "Regalo 6to Grado",
-        "total_en_cuenta": 143000.0
+        "total_en_cuenta": 143000
     },
     {
         "fecha": "2026-04-08 03:00:02",
@@ -68,5 +68,54 @@
         "monto": 241.53,
         "concepto": "Rendimiento diario",
         "total_en_cuenta": 145159.37
+    },
+    {
+        "fecha": "2026-04-19 03:00:02",
+        "tipo": "Rendimiento",
+        "monto": 241.93,
+        "concepto": "Rendimiento diario",
+        "total_en_cuenta": 145401.3
+    },
+    {
+        "fecha": "2026-04-20 03:00:02",
+        "tipo": "Rendimiento",
+        "monto": 242.34,
+        "concepto": "Rendimiento diario",
+        "total_en_cuenta": 145643.64
+    },
+    {
+        "fecha": "2026-04-21 03:00:02",
+        "tipo": "Rendimiento",
+        "monto": 242.74,
+        "concepto": "Rendimiento diario",
+        "total_en_cuenta": 145886.38
+    },
+    {
+        "fecha": "2026-04-22 03:00:02",
+        "tipo": "Rendimiento",
+        "monto": 243.14,
+        "concepto": "Rendimiento diario",
+        "total_en_cuenta": 146129.52
+    },
+    {
+        "fecha": "2026-04-23 03:00:02",
+        "tipo": "Rendimiento",
+        "monto": 243.55,
+        "concepto": "Rendimiento diario",
+        "total_en_cuenta": 146373.07
+    },
+    {
+        "fecha": "2026-04-24 03:00:03",
+        "tipo": "Rendimiento",
+        "monto": 243.96,
+        "concepto": "Rendimiento diario",
+        "total_en_cuenta": 146617.03
+    },
+    {
+        "fecha": "2026-04-25 03:00:02",
+        "tipo": "Rendimiento",
+        "monto": 244.36,
+        "concepto": "Rendimiento diario",
+        "total_en_cuenta": 146861.39
     }
 ]
