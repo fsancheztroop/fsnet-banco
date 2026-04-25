@@ -24,6 +24,7 @@ if (!$usuario_encontrado) exit("Usuario no encontrado.");
 // Cargar movimientos según moneda
 $archivo = 'cuentas/' . $username . ($moneda === 'usd' ? '_usd.json' : '.json');
 $movimientos = file_exists($archivo) ? json_decode(file_get_contents($archivo), true) : [];
+// Solo lectura, no requiere flock ni validación de escritura
 
 // Configuración
 $config = json_decode(file_get_contents('config.json'), true);
@@ -102,12 +103,35 @@ $clase_tema = ($moneda === 'usd') ? 'theme-usd' : 'theme-ars';
     <link rel="stylesheet" href="assets/css/style.css?v=32">
 </head>
 <body class="<?= $clase_tema ?>">
+    <header class="site-header">
+        <img src="logo.png" alt="Logo" class="logo">
+        <nav>
+            <a href="admin.php">Panel</a>
+            <a href="dashboard.php">Dashboard</a>
+            <a href="todos_los_movimientos.php">Movimientos</a>
+            <form action="logout.php" method="POST" style="display:inline; margin:0;">
+                <button type="submit" style="background:var(--danger);margin-left:10px;"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            </form>
+        </nav>
+    </header>
     <div class="container">
         <div class="panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h1 style="margin:0;"><i class="fas fa-wallet"></i> <?= htmlspecialchars($usuario_encontrado['name']) ?></h1>
                 <a href="admin.php" class="btn" style="background:#6c757d;">Volver</a>
             </div>
+
+            <!-- Mensajes de error/éxito (si aplica) -->
+            <?php if (!empty($mensaje_exito)): ?>
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> <?= htmlspecialchars($mensaje_exito) ?>
+                </div>
+            <?php endif; ?>
+            <?php if (!empty($mensaje_error)): ?>
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($mensaje_error) ?>
+                </div>
+            <?php endif; ?>
 
             <!-- Selector de Moneda -->
             <div class="tabs">

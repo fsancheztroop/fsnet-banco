@@ -26,28 +26,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
 
-			// Guardar el login en un log
-			$log = [
-				'usuario' => $usuario,
-				'fecha' => date('Y-m-d H:i:s'),
-				'ip' => $_SERVER['REMOTE_ADDR']
-			];
-
-			// Leer el contenido existente del archivo
-			$log_data = [];
-			$log_file = 'logs/log_login.json';
-			if (file_exists($log_file)) {
-				$log_data = json_decode(file_get_contents($log_file), true);
-				if (!is_array($log_data)) {
-					$log_data = [];
-				}
-			}
-
-			// Agregar el nuevo log
-			$log_data[] = $log;
-
-			// Guardar el nuevo contenido en el archivo
-			file_put_contents($log_file, json_encode($log_data, JSON_PRETTY_PRINT));
+            // Guardar el login en un log
+            $log = [
+                'usuario' => $usuario,
+                'fecha' => date('Y-m-d H:i:s'),
+                'ip' => $_SERVER['REMOTE_ADDR']
+            ];
+            $log_file = 'logs/log_login.json';
+            $log_data = [];
+            if (file_exists($log_file)) {
+                $log_data = json_decode(file_get_contents($log_file), true);
+                if (!is_array($log_data)) {
+                    $log_data = [];
+                }
+            }
+            $log_data[] = $log;
+            $json = json_encode($log_data, JSON_PRETTY_PRINT);
+            if ($json === false) {
+                $mensaje_error = 'Error al serializar el log de login.';
+            } else {
+                $fp = fopen($log_file, 'c+');
+                if ($fp && flock($fp, LOCK_EX)) {
+                    ftruncate($fp, 0);
+                    rewind($fp);
+                    $ok = fwrite($fp, $json);
+                    fflush($fp);
+                    flock($fp, LOCK_UN);
+                    fclose($fp);
+                    if ($ok === false) {
+                        $mensaje_error = 'Error al guardar el log de login.';
+                    }
+                } else {
+                    $mensaje_error = 'No se pudo bloquear el archivo de log.';
+                }
+            }
 
             // Redireccionar según el rol del usuario
             if ($user['role'] === 'admin') {
@@ -74,13 +86,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Login - BANCO FSNET</title>
     <link rel="stylesheet" href="assets/css/style.css?=v24">
 </head>
+
 <body>
+    <header class="site-header">
+        <img src="logo.png" alt="Logo" class="logo">
+        <nav>
+            <a href="index.php" class="active">Login</a>
+        </nav>
+    </header>
     <div class="login-container">
-        <img src="logo.png" alt="Logo Banco FSNET" class="logo">
         <h1>Iniciar Sesión</h1>
 
         <?php if ($mensaje_error): ?>
-            <p class="error"><?= $mensaje_error ?></p>
+            <div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($mensaje_error) ?></div>
         <?php endif; ?>
 
         <form method="POST" action="index.php">

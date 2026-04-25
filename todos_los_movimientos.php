@@ -20,13 +20,14 @@ if (!file_exists($cuenta_json_path)) {
     // Si no existe, inicializamos vacío para no romper la web
     $movimientos = [];
 } else {
-    // Cargar los movimientos de la cuenta del usuario desde su archivo JSON
+    // Cargar los movimientos de la cuenta del usuario desde su archivo JSON (solo lectura)
     $movimientos = json_decode(file_get_contents($cuenta_json_path), true);
+    // Solo lectura, no requiere flock ni validación de escritura
 }
 
 // Verificar si la lectura de los movimientos fue exitosa
 if ($movimientos === null && file_exists($cuenta_json_path)) {
-    echo "Error: No se pudo leer el archivo JSON de movimientos.";
+    echo '<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> Error: No se pudo leer el archivo JSON de movimientos.</div>';
     exit;
 }
 $simbolo = ($moneda === 'usd') ? 'US$' : '$';
@@ -42,6 +43,16 @@ $simbolo = ($moneda === 'usd') ? 'US$' : '$';
     <link rel="stylesheet" href="assets/css/style.css?=v14">
 </head>
 <body>
+    <header class="site-header">
+        <img src="logo.png" alt="Logo" class="logo">
+        <nav>
+            <a href="dashboard.php">Dashboard</a>
+            <a href="todos_los_movimientos.php" class="active">Movimientos</a>
+            <form action="logout.php" method="POST" style="display:inline; margin:0;">
+                <button type="submit" style="background:var(--danger);margin-left:10px;"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            </form>
+        </nav>
+    </header>
     <div class="container">
         <div class="panel">
             <h1>Todos los Movimientos</h1>

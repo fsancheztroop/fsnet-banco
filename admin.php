@@ -21,10 +21,29 @@ $mensaje_error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_config') {
     $config['interes_mensual'] = floatval($_POST['interes_ars']) / 100;
     $config['interes_mensual_usd'] = floatval($_POST['interes_usd']) / 100;
-    file_put_contents($config_path, json_encode($config, JSON_PRETTY_PRINT));
-    $interes_mensual_ars = $config['interes_mensual'];
-    $interes_mensual_usd = $config['interes_mensual_usd'];
-    $mensaje_exito = "Tasas de interés actualizadas correctamente.";
+    $json = json_encode($config, JSON_PRETTY_PRINT);
+    if ($json === false) {
+        $mensaje_error = "Error al serializar la configuración.";
+    } else {
+        $fp = fopen($config_path, 'c+');
+        if ($fp && flock($fp, LOCK_EX)) {
+            ftruncate($fp, 0);
+            rewind($fp);
+            $ok = fwrite($fp, $json);
+            fflush($fp);
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            if ($ok === false) {
+                $mensaje_error = "Error al guardar la configuración.";
+            } else {
+                $interes_mensual_ars = $config['interes_mensual'];
+                $interes_mensual_usd = $config['interes_mensual_usd'];
+                $mensaje_exito = "Tasas de interés actualizadas correctamente.";
+            }
+        } else {
+            $mensaje_error = "No se pudo bloquear el archivo de configuración.";
+        }
+    }
 }
 
 // 2. Nuevo Movimiento
@@ -37,10 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     $archivo = 'cuentas/' . strtolower($usuario_target) . ($moneda === 'usd' ? '_usd.json' : '.json');
     $movimientos = file_exists($archivo) ? json_decode(file_get_contents($archivo), true) : [];
-    
     $total_actual = end($movimientos)['total_en_cuenta'] ?? 0;
     $nuevo_total = ($tipo === 'Ingreso') ? $total_actual + $monto : $total_actual - $monto;
-
     $movimientos[] = [
         'fecha' => date('Y-m-d H:i:s'),
         'tipo' => $tipo,
@@ -48,9 +65,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'concepto' => htmlspecialchars($concepto),
         'total_en_cuenta' => $nuevo_total
     ];
-
-    file_put_contents($archivo, json_encode($movimientos, JSON_PRETTY_PRINT));
-    $mensaje_exito = "Movimiento registrado en la cuenta " . strtoupper($moneda) . " de $usuario_target.";
+    $json = json_encode($movimientos, JSON_PRETTY_PRINT);
+    if ($json === false) {
+        $mensaje_error = "Error al serializar los movimientos.";
+    } else {
+        $fp = fopen($archivo, 'c+');
+        if ($fp && flock($fp, LOCK_EX)) {
+            ftruncate($fp, 0);
+            rewind($fp);
+            $ok = fwrite($fp, $json);
+            fflush($fp);
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            if ($ok === false) {
+                $mensaje_error = "Error al guardar el movimiento.";
+            } else {
+                $mensaje_exito = "Movimiento registrado en la cuenta " . strtoupper($moneda) . " de $usuario_target.";
+            }
+        } else {
+            $mensaje_error = "No se pudo bloquear el archivo de cuenta.";
+        }
+    }
 }
 
 // 3. Cambio de Divisas
@@ -67,9 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     
     $movs_origen = file_exists($file_origen) ? json_decode(file_get_contents($file_origen), true) : [];
     $movs_destino = file_exists($file_destino) ? json_decode(file_get_contents($file_destino), true) : [];
-    
     $saldo_origen = end($movs_origen)['total_en_cuenta'] ?? 0;
-    
     if ($saldo_origen < $monto_salida) {
         $mensaje_error = "Error: Saldo insuficiente en la cuenta de origen (" . strtoupper($origen) . ").";
     } else {
@@ -81,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $tasa = ($monto_salida > 0) ? $monto_entrada / $monto_salida : 0;
             $txt_tasa = "1 USD = " . number_format($tasa, 2) . " ARS";
         }
-
         // 1. Restar de Origen
         $movs_origen[] = [
             'fecha' => date('Y-m-d H:i:s'),
@@ -90,7 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'concepto' => "Cambio a " . strtoupper($destino) . " ($txt_tasa)",
             'total_en_cuenta' => $saldo_origen - $monto_salida
         ];
-
         // 2. Sumar a Destino
         $saldo_destino = end($movs_destino)['total_en_cuenta'] ?? 0;
         $movs_destino[] = [
@@ -100,10 +131,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'concepto' => "Cambio desde " . strtoupper($origen) . " ($txt_tasa)",
             'total_en_cuenta' => $saldo_destino + $monto_entrada
         ];
-
-        file_put_contents($file_origen, json_encode($movs_origen, JSON_PRETTY_PRINT));
-        file_put_contents($file_destino, json_encode($movs_destino, JSON_PRETTY_PRINT));
-        $mensaje_exito = "Cambio de divisas realizado exitosamente.";
+        $json_origen = json_encode($movs_origen, JSON_PRETTY_PRINT);
+        $json_destino = json_encode($movs_destino, JSON_PRETTY_PRINT);
+        if ($json_origen === false || $json_destino === false) {
+            $mensaje_error = "Error al serializar los movimientos de cambio.";
+        } else {
+            $fp1 = fopen($file_origen, 'c+');
+            $fp2 = fopen($file_destino, 'c+');
+            $ok1 = $ok2 = false;
+            if ($fp1 && flock($fp1, LOCK_EX)) {
+                ftruncate($fp1, 0);
+                rewind($fp1);
+                $ok1 = fwrite($fp1, $json_origen);
+                fflush($fp1);
+                flock($fp1, LOCK_UN);
+                fclose($fp1);
+            }
+            if ($fp2 && flock($fp2, LOCK_EX)) {
+                ftruncate($fp2, 0);
+                rewind($fp2);
+                $ok2 = fwrite($fp2, $json_destino);
+                fflush($fp2);
+                flock($fp2, LOCK_UN);
+                fclose($fp2);
+            }
+            if ($ok1 === false || $ok2 === false) {
+                $mensaje_error = "Error al guardar los movimientos de cambio.";
+            } else {
+                $mensaje_exito = "Cambio de divisas realizado exitosamente.";
+            }
+        }
     }
 }
 
@@ -146,24 +203,35 @@ foreach ($usuarios as $user) {
     <title>Admin - BANCO FSNET</title>
     <link rel="stylesheet" href="assets/css/style.css?v=32">
 </head>
+
 <body>
-    <form action="logout.php" method="POST" class="logout-btn">
-        <button type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
-    </form>
+    <header class="site-header">
+        <img src="logo.png" alt="Logo" class="logo">
+        <nav>
+            <a href="admin.php" class="active">Panel</a>
+            <?php // Solo mostrar Dashboard y Movimientos si NO es admin (por seguridad redundante, aunque este archivo es solo para admin) ?>
+            <?php if (isset($_SESSION['role']) && $_SESSION['role'] !== 'admin'): ?>
+                <a href="dashboard.php">Dashboard</a>
+                <a href="todos_los_movimientos.php">Movimientos</a>
+            <?php endif; ?>
+            <form action="logout.php" method="POST" style="display:inline; margin:0;">
+                <button type="submit" style="background:var(--danger);margin-left:10px;"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+            </form>
+        </nav>
+    </header>
 
     <div class="container">
-        <img src="logo.png" alt="Logo" class="logo">
         
         <div class="panel">
             <h1><i class="fas fa-user-shield"></i> Panel de Administrador</h1>
             
             <?php if ($mensaje_exito): ?>
-                <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+                <div class="alert alert-success">
                     <i class="fas fa-check-circle"></i> <?= htmlspecialchars($mensaje_exito) ?>
                 </div>
             <?php endif; ?>
             <?php if ($mensaje_error): ?>
-                <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                <div class="alert alert-error">
                     <i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($mensaje_error) ?>
                 </div>
             <?php endif; ?>

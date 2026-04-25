@@ -11,6 +11,7 @@ $moneda = isset($_GET['moneda']) ? $_GET['moneda'] : 'ars'; // Default ARS
 // Cargar archivo según moneda
 $archivo = 'cuentas/' . strtolower($username) . ($moneda === 'usd' ? '_usd.json' : '.json');
 $movimientos = file_exists($archivo) ? json_decode(file_get_contents($archivo), true) : [];
+// Solo lectura, no requiere flock ni validación de escritura
 
 // Cálculos básicos
 $capital = 0;
@@ -109,13 +110,20 @@ $color_grafico = ($moneda === 'usd') ? '#28a745' : '#007bff';
     <link rel="stylesheet" href="assets/css/style.css?v=31">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body class="<?= $clase_tema ?>">
-    <form action="logout.php" method="POST" class="logout-btn">
-        <button type="submit"><i class="fas fa-sign-out-alt"></i> Salir</button>
-    </form>
+    <header class="site-header">
+        <img src="logo.png" alt="Logo" class="logo">
+        <nav>
+            <a href="dashboard.php" class="active">Dashboard</a>
+            <a href="todos_los_movimientos.php">Movimientos</a>
+            <form action="logout.php" method="POST" style="display:inline; margin:0;">
+                <button type="submit" style="background:var(--danger);margin-left:10px;"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            </form>
+        </nav>
+    </header>
 
     <div class="container">
-        <img src="logo.png" alt="Logo" class="logo">
         <div class="panel">
             <h1>Hola, <?= htmlspecialchars($_SESSION['usuario']); ?></h1>
 
