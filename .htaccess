@@ -1,8 +1,4 @@
-<Files "*.php">
-Require all granted
-</Files>
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType text/css "access plus 1 month"
+<IfModule mime_module>
+    # Forzar el uso de PHP 8.2 para todos los archivos .php
+    AddHandler application/x-httpd-ea-php82 .php
 </IfModule>
